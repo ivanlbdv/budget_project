@@ -7,7 +7,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.db.models import Sum
 from django.http import HttpResponse
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import formats
 
 from .forms import CategoryForm, LoginForm, TransactionForm
@@ -119,6 +119,47 @@ def add_transaction(request):
             user=request.user
         )
     return render(request, 'transaction_form.html', {'form': form})
+
+
+@login_required
+def edit_transaction(request, pk):
+    transaction = get_object_or_404(Transaction, id=pk, user=request.user)
+    form = TransactionForm(instance=transaction)
+    print(f"Transaction ID: {transaction.id}")  # должен вывести ID из URL
+    print(f"Form data: {form.initial}")  # покажет начальные данные формы
+    return render(request, 'edit_transaction.html', {
+        'form': form,
+        'transaction': transaction
+    })
+
+
+@login_required
+def update_transaction(request, pk):
+    if request.method == 'POST':
+        transaction = get_object_or_404(Transaction, id=pk, user=request.user)
+        form = TransactionForm(request.POST, instance=transaction)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Операция обновлена!')
+            return redirect('dashboard')
+        else:
+            return render(request, 'edit_transaction.html', {
+                'form': form,
+                'transaction': transaction
+            })
+    else:
+        return redirect('edit_transaction', pk=pk)
+
+
+@login_required
+def delete_transaction(request, pk):
+    transaction = get_object_or_404(Transaction, id=pk, user=request.user)
+
+    transaction.delete()
+
+    messages.success(request, 'Операция удалена!')
+
+    return redirect('dashboard')
 
 
 @login_required
