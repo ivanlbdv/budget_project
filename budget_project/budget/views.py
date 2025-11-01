@@ -125,8 +125,6 @@ def add_transaction(request):
 def edit_transaction(request, pk):
     transaction = get_object_or_404(Transaction, id=pk, user=request.user)
     form = TransactionForm(instance=transaction)
-    print(f"Transaction ID: {transaction.id}")  # должен вывести ID из URL
-    print(f"Form data: {form.initial}")  # покажет начальные данные формы
     return render(request, 'edit_transaction.html', {
         'form': form,
         'transaction': transaction
