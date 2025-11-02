@@ -66,7 +66,7 @@
             </select>
         </div>
 
-        <!-- Дата начала (ИСПРАВЛЕНО: проверка на None) -->
+        <!-- Дата начала -->
         <div class="col-md-3">
             <label for="start_date" class="form-label">Начало периода</label>
             <input type="date" 
@@ -76,7 +76,7 @@
                    value="{% if start_date %}{{ start_date }}{% endif %}">
         </div>
 
-        <!-- Дата окончания (ИСПРАВЛЕНО: проверка на None) -->
+        <!-- Дата окончания -->
         <div class="col-md-3">
             <label for="end_date" class="form-label">Конец периода</label>
             <input type="date"
@@ -130,9 +130,6 @@
                     </td>
                     <td>
                         {{ transaction.amount }} ₽
-                        {% if transaction.transaction_type == 'expense' %}
-                            <i class="text-danger">-</i>
-                        {% endif %}
                     </td>
                     <td>{{ transaction.category.name|default:"—" }}</td>
                     <td>{{ transaction.description|default:"—" }}</td>
@@ -162,11 +159,15 @@
     </div>
 </div>
 
-<!-- ПЕРЕДАЧА ДАННЫХ ДЛЯ ГРАФИКОВ (ИСПРАВЛЕНО: json_script вместо |safe) -->
+<!-- ПЕРЕДАЧА ДАННЫХ ДЛЯ ГРАФИКОВ -->
 {{ labels_expense|json_script:"labelsExpense" }}
 {{ data_expense|json_script:"dataExpense" }}
 {{ labels_income|json_script:"labelsIncome" }}
 {{ data_income|json_script:"dataIncome" }}
+
+<!-- ПЕРЕДАЧА ДАННЫХ ДЛЯ КРУГОВОЙ ДИАГРАММЫ -->
+{{ pie_labels|json_script:"pieLabels" }}
+{{ pie_data|json_script:"pieData" }}
 
 <!-- Графики -->
 <div class="row mt-4">
@@ -181,6 +182,21 @@
         <h6 style="text-align: center; width: 100%;">Доходы по месяцам</h6>
         <canvas id="incomeChart" width="400" height="200"></canvas>
     </div>
+</div>
+
+<!-- Круговая диаграмма (распределение расходов по категориям) -->
+<div class="container mt-5">
+  <h4 class="text-center">Распределение расходов по категориям</h4>
+  <div style="
+    width: 350px;
+    height: 350px;
+    margin: 20px auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  ">
+    <canvas id="pieChart"></canvas>
+  </div>
 </div>
 
 <script>
@@ -272,6 +288,59 @@
     });
   });
 </script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Круговая диаграмма
+      const labels = JSON.parse(document.getElementById('pieLabels').textContent);
+      const data = JSON.parse(document.getElementById('pieData').textContent);
+
+      if (labels.length === 0 || data.length === 0) {
+        console.warn('Нет данных для круговой диаграммы');
+        return;
+      }
+
+      const ctx = document.getElementById('pieChart').getContext('2d');
+      const pieChart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+          labels: labels,
+          datasets: [{
+            data: data,
+            backgroundColor: [
+              '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
+              '#FF9F40', '#FFCD56', '#4D5360', '#FF6F61', '#6B4423'
+            ],
+            hoverOffset: 10
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: {
+                padding: 20,
+                usePointStyle: true
+              }
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  const label = context.label || '';
+                  const value = context.parsed || 0;
+                  const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                  const percentage = ((value / total) * 100).toFixed(1);
+                  return `${label}: ${value.toLocaleString()} ₽ (${percentage}%)`;
+                }
+              }
+            }
+          }
+        }
+      });
+    });
+  </script>
 
 {% endif %}
 {% endblock %}

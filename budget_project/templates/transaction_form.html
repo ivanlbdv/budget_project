@@ -10,7 +10,57 @@
                 <h4 class="card-title mb-4">Добавить операцию</h4>
                 <form method="post">
                     {% csrf_token %}
-                    {{ form.as_p }}
+                    
+                    <div class="mb-3">
+                        {{ form.date.label_tag }}
+                        {{ form.date }}
+                        {% if form.date.errors %}
+                            <div class="text-danger">
+                                {% for error in form.date.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.transaction_type.label_tag }}
+                        {{ form.transaction_type }}
+                        {% if form.transaction_type.errors %}
+                            <div class="text-danger">
+                                {% for error in form.transaction_type.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.amount.label_tag }}
+                        {{ form.amount }}
+                        {% if form.amount.errors %}
+                            <div class="text-danger">
+                                {% for error in form.amount.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.category.label_tag }}
+                        {{ form.category }}
+                        {% if form.category.errors %}
+                            <div class="text-danger">
+                                {% for error in form.category.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.description.label_tag }}
+                        {{ form.description }}
+                        {% if form.description.errors %}
+                            <div class="text-danger">
+                                {% for error in form.description.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
                     <button type="submit" class="btn btn-success">Сохранить</button>
                     <a href="{% url 'dashboard' %}" class="btn btn-secondary">Назад</a>
                 </form>

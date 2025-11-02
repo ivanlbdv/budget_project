@@ -30,7 +30,8 @@ class TransactionForm(forms.ModelForm):
             'transaction_type': forms.Select(attrs={'class': 'form-select'}),
             'category': forms.Select(attrs={'class': 'form-select'}),
             'date': forms.DateInput(
-                attrs={'type': 'date', 'class': 'form-control'}
+                attrs={'type': 'date', 'class': 'form-control'},
+                format='%Y-%m-%d'
             ),
             'description': forms.Textarea(attrs={
                 'class': 'form-control',

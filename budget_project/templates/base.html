@@ -6,18 +6,20 @@
     <title>{% block title %}&#x1F4B0; Бюджет-трекер{% endblock %}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body { background-color: #f8f9fa; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #f8f9fa; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding-top: 70px; padding-bottom: 60px; }
         .navbar-brand { font-weight: 600; }
-        .main-container { margin-top: 20px; padding: 20px; }
+        .main-container { padding: 20px; }
         .card { border-radius: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); }
         .btn-primary { background-color: #0d6efd; border-color: #0d6efd; }
         .btn-outline-primary { border-color: #0d6efd; color: #0d6efd; }
         .btn-secondary { background-color: #6c757d; border-color: #6c757d; }
         .table-hover tbody tr:hover { background-color: rgba(13, 110, 253, 0.05); }
+        .footer { background-color: #f8f9fa; border-top: 1px solid #e9ecef; padding: 1rem 0; }
+        .footer .text-muted { font-size: 0.9rem; }
     </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
         <div class="container-fluid">
             <a class="navbar-brand" href="{% url 'dashboard' %}">&#x1F4B0; Бюджет-трекер</a>
             <div class="navbar-nav">
@@ -48,5 +50,12 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <footer class="footer fixed-bottom bg-light">
+    <div class="container text-center">
+        <span class="text-muted">
+        &copy; {{ year }} Лебедев Иван. Все права защищены.
+        </span>
+    </div>
+    </footer>
 </body>
 </html>

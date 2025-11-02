@@ -21,6 +21,11 @@ def dashboard(request):
     search_query = request.GET.get('q', '').strip()
     category_id = request.GET.get('category')
 
+    start_date_display = start_date if start_date else ''
+    end_date_display = end_date if end_date else ''
+    search_query_display = search_query if search_query else ''
+    selected_category_display = category_id if category_id else ''
+
     transactions = Transaction.objects.filter(user=request.user)
 
     if start_date and end_date:
@@ -35,7 +40,6 @@ def dashboard(request):
     if category_id:
         transactions = transactions.filter(category_id=category_id)
 
-    # Расчёт сумм через БД
     total_income = transactions.filter(transaction_type='income').aggregate(
         total=Sum('amount')
     )['total'] or 0
@@ -44,7 +48,6 @@ def dashboard(request):
         total=Sum('amount')
     )['total'] or 0
 
-    # График расходов и доходов по месяцам
     monthly_data = defaultdict(lambda: {'income': 0, 'expense': 0})
 
     for trans in transactions:
@@ -70,19 +73,32 @@ def dashboard(request):
 
     categories = Category.objects.filter(user=request.user)
 
+    expense_by_category = (
+        transactions
+        .filter(transaction_type='expense')
+        .values('category__name')
+        .annotate(total=Sum('amount'))
+        .order_by('-total')
+    )
+
+    pie_labels = [item['category__name'] for item in expense_by_category]
+    pie_data = [float(item['total']) for item in expense_by_category]
+
     return render(request, 'dashboard.html', {
         'transactions': transactions,
         'total_income': total_income,
         'total_expense': total_expense,
-        'start_date': start_date,
-        'end_date': end_date,
-        'search_query': search_query,
-        'selected_category': category_id,
+        'start_date': start_date_display,
+        'end_date': end_date_display,
+        'search_query': search_query_display,
+        'selected_category': selected_category_display,
         'categories': categories,
         'labels_expense': labels_expense_formatted,
         'data_expense': data_expense,
         'labels_income': labels_income_formatted,
-        'data_income': data_income
+        'data_income': data_income,
+        'pie_labels': pie_labels,
+        'pie_data': pie_data,
     })
 
 
@@ -114,7 +130,6 @@ def add_transaction(request):
             return redirect('dashboard')
     else:
         form = TransactionForm()
-        # Заполняем список категорий для текущего пользователя
         form.fields['category'].queryset = Category.objects.filter(
             user=request.user
         )
@@ -152,11 +167,8 @@ def update_transaction(request, pk):
 @login_required
 def delete_transaction(request, pk):
     transaction = get_object_or_404(Transaction, id=pk, user=request.user)
-
     transaction.delete()
-
     messages.success(request, 'Операция удалена!')
-
     return redirect('dashboard')
 
 
