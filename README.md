@@ -7,6 +7,13 @@
 - Визуализировать данные через интерактивные графики;
 - Экспортировать историю операций в CSV.
 
+## Скриншоты приложения
+<p align="center">
+  <img src="budget_project/screenshots/main-screen.png" alt="Главный экран" width="300"/>
+  <img src="budget_project/screenshots/charts.png" alt="Графики и диаграммы" width="300"/>
+  <img src="budget_project/screenshots/add-transaction.png" alt="Форма добавления операции" width="300"/>
+</p>
+
 ## Используемые технологии
 - Python 3.10.11
 - Django 3.2.16
