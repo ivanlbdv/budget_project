@@ -11,6 +11,73 @@
     </div>
 {% else %}
 
+<style>
+    /* Дата — шире, тип — компактнее */
+    #transactions-table th.date,
+    #transactions-table td.date {
+        width: 14%;
+        max-width: 14%;
+        white-space: nowrap;
+    }
+
+    #transactions-table th.type,
+    #transactions-table td.type {
+        width: 6%;
+        max-width: 6%;
+    }
+
+    #transactions-table th.amount,
+    #transactions-table td.amount {
+        width: 12%;
+        max-width: 12%;
+    }
+
+    #transactions-table th.category,
+    #transactions-table td.category {
+        width: 18%;
+        max-width: 18%;
+    }
+
+    #transactions-table th.description,
+    #transactions-table td.description {
+        width: 30%;
+        max-width: 30%;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    #transactions-table th.actions,
+    #transactions-table td.actions {
+        width: 20%;  /* было 22% */
+        max-width: 20%;
+        text-align: right;
+    }
+
+    /* Запрет переноса и фиксированная вёрстка */
+    #transactions-table td {
+        white-space: nowrap;
+    }
+
+    #transactions-table {
+        table-layout: fixed;
+        width: 100%;
+    }
+
+    /* Отступы между кнопками */
+    .btn-group .btn {
+        margin-right: 0.375rem;
+    }
+    .btn-group .btn:last-child {
+        margin-right: 0;
+    }
+
+    /* Минимальная ширина для кнопок */
+    #transactions-table td.actions {
+        min-width: 160px;
+    }
+</style>
+
 <div class="row mb-4">
     <div class="col-md-4">
         <div class="card text-white bg-success">
@@ -69,7 +136,7 @@
         <!-- Дата начала -->
         <div class="col-md-3">
             <label for="start_date" class="form-label">Начало периода</label>
-            <input type="date" 
+            <input type="date"
                    class="form-control"
                    id="start_date"
                    name="start_date"
@@ -102,56 +169,56 @@
 
 <!-- Таблица операций -->
 <div class="card">
-    <div class="card-header">
+    <div class="card-header d-flex justify-content-between align-items-center">
         <h5>Последние операции</h5>
+        <button id="show-all-btn"
+                class="btn btn-outline-primary btn-sm"
+                data-is-expanded="false"
+                data-total-count="{{ total_transactions_count }}">
+            Показать все ({{ total_transactions_count }})
+        </button>
     </div>
     <div class="card-body">
-        <table class="table table-hover">
+        <table class="table table-hover" id="transactions-table">
             <thead>
                 <tr>
-                    <th>Дата</th>
-                    <th>Тип</th>
-                    <th>Сумма</th>
-                    <th>Категория</th>
-                    <th>Описание</th>
-                    <th>Действия</th>
+                    <th class="date">Дата</th>
+                    <th class="type">Тип</th>
+                    <th class="amount">Сумма</th>
+                    <th class="category">Категория</th>
+                    <th class="description">Описание</th>
+                    <th class="actions">Действия</th>
                 </tr>
             </thead>
-            <tbody>
-                {% for transaction in transactions %}
+            <tbody id="transactions-tbody">
+                {% for transaction in recent_transactions %}
                 <tr>
-                    <td>{{ transaction.date }}</td>
-                    <td>
+                    <td class="date">{{ transaction.date }}</td>
+                    <td class="type">
                         {% if transaction.transaction_type == 'income' %}
                             <span class="text-success">Доход</span>
                         {% else %}
                             <span class="text-danger">Расход</span>
                         {% endif %}
                     </td>
-                    <td>
-                        {{ transaction.amount }} ₽
+                    <td class="amount">{{ transaction.amount }} ₽</td>
+                    <td class="category">{{ transaction.category.name|default:"—" }}</td>
+                    <td class="description" title="{{ transaction.description }}">
+                        {{ transaction.description|default:"—" }}
                     </td>
-                    <td>{{ transaction.category.name|default:"—" }}</td>
-                    <td>{{ transaction.description|default:"—" }}</td>
-                    <td>
-                      <!-- Кнопка редактирования -->
-                      <a href="{% url 'edit_transaction' transaction.id %}"
-                        class="btn btn-sm btn-outline-primary">
-                        Редактировать
-                      </a>
-                    </td>
-                    <td>
-                      <!-- Кнопка удаления с подтверждением -->
-                      <a href="{% url 'delete_transaction' transaction.id %}"
-                          class="btn btn-sm btn-outline-danger"
-                          onclick="return confirm('Вы уверены, что хотите удалить эту операцию?')">
-                        Удалить
-                      </a>
+                    <td class="actions">
+                        <div class="btn-group" role="group">
+                            <a href="{% url 'edit_transaction' transaction.id %}"
+                               class="btn btn-sm btn-outline-primary">Редактировать</a>
+                            <a href="{% url 'delete_transaction' transaction.id %}"
+                               class="btn btn-sm btn-outline-danger"
+                               onclick="return confirm('Вы уверены, что хотите удалить эту операцию?')">Удалить</a>
+                        </div>
                     </td>
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="5" class="text-center text-muted">Нет операций за выбранный период</td>
+                    <td colspan="6" class="text-center text-muted">Нет операций за выбранный период</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -159,11 +226,41 @@
     </div>
 </div>
 
+<template id="all-transactions-template">
+    {% for transaction in all_transactions %}
+    <tr>
+        <td class="date">{{ transaction.date }}</td>
+        <td class="type">
+            {% if transaction.transaction_type == 'income' %}
+                <span class="text-success">Доход</span>
+            {% else %}
+                <span class="text-danger">Расход</span>
+            {% endif %}
+        </td>
+        <td class="amount">{{ transaction.amount }} ₽</td>
+        <td class="category">{{ transaction.category.name|default:"—" }}</td>
+        <td class="description" title="{{ transaction.description }}">
+            {{ transaction.description|default:"—" }}
+        </td>
+        <td class="actions">
+            <div class="btn-group" role="group">
+                <a href="{% url 'edit_transaction' transaction.id %}"
+                   class="btn btn-sm btn-outline-primary">Редактировать</a>
+                <a href="{% url 'delete_transaction' transaction.id %}"
+                   class="btn btn-sm btn-outline-danger"
+                   onclick="return confirm('Вы уверены, что хотите удалить эту операцию?')">Удалить</a>
+            </div>
+        </td>
+    </tr>
+    {% endfor %}
+</template>
+
 <!-- ПЕРЕДАЧА ДАННЫХ ДЛЯ ГРАФИКОВ -->
 {{ labels_expense|json_script:"labelsExpense" }}
 {{ data_expense|json_script:"dataExpense" }}
 {{ labels_income|json_script:"labelsIncome" }}
 {{ data_income|json_script:"dataIncome" }}
+
 
 <!-- ПЕРЕДАЧА ДАННЫХ ДЛЯ КРУГОВОЙ ДИАГРАММЫ -->
 {{ pie_labels|json_script:"pieLabels" }}
@@ -290,57 +387,117 @@
 </script>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      // Круговая диаграмма
-      const labels = JSON.parse(document.getElementById('pieLabels').textContent);
-      const data = JSON.parse(document.getElementById('pieData').textContent);
+  document.addEventListener('DOMContentLoaded', function() {
+    // Круговая диаграмма
+    const labels = JSON.parse(document.getElementById('pieLabels').textContent);
+    const data = JSON.parse(document.getElementById('pieData').textContent);
 
-      if (labels.length === 0 || data.length === 0) {
-        console.warn('Нет данных для круговой диаграммы');
-        return;
-      }
+    if (labels.length === 0 || data.length === 0) {
+      console.warn('Нет данных для круговой диаграммы');
+      return;
+    }
 
-      const ctx = document.getElementById('pieChart').getContext('2d');
-      const pieChart = new Chart(ctx, {
-        type: 'pie',
-        data: {
-          labels: labels,
-          datasets: [{
-            data: data,
-            backgroundColor: [
-              '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
-              '#FF9F40', '#FFCD56', '#4D5360', '#FF6F61', '#6B4423'
-            ],
-            hoverOffset: 10
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              position: 'bottom',
-              labels: {
-                padding: 20,
-                usePointStyle: true
-              }
-            },
-            tooltip: {
-              callbacks: {
-                label: function(context) {
-                  const label = context.label || '';
-                  const value = context.parsed || 0;
-                  const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                  const percentage = ((value / total) * 100).toFixed(1);
-                  return `${label}: ${value.toLocaleString()} ₽ (${percentage}%)`;
-                }
+    const ctx = document.getElementById('pieChart').getContext('2d');
+    const pieChart = new Chart(ctx, {
+      type: 'pie',
+      data: {
+        labels: labels,
+        datasets: [{
+          data: data,
+          backgroundColor: [
+            '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
+            '#FF9F40', '#FFCD56', '#4D5360', '#FF6F61', '#6B4423'
+          ],
+          hoverOffset: 10
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: {
+              padding: 20,
+              usePointStyle: true
+            }
+          },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                const label = context.label || '';
+                const value = context.parsed || 0;
+                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                const percentage = ((value / total) * 100).toFixed(1);
+                return `${label}: ${value.toLocaleString()} ₽ (${percentage}%)`;
               }
             }
           }
         }
-      });
+      }
     });
-  </script>
+  });
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const showAllBtn = document.getElementById('show-all-btn');
+    const tableBody = document.getElementById('transactions-tbody');
+    const template = document.getElementById('all-transactions-template');
+
+    showAllBtn.addEventListener('click', function() {
+        const isExpanded = showAllBtn.getAttribute('data-is-expanded') === 'true';
+
+        if (!isExpanded) {
+            const scrollTop = tableBody.parentElement.scrollTop;
+
+            tableBody.innerHTML = template.innerHTML;
+            showAllBtn.textContent = 'Свернуть до 5 последних';
+            showAllBtn.setAttribute('data-is-expanded', 'true');
+
+            tableBody.parentElement.scrollTop = scrollTop;
+        } else {
+            const scrollTop = tableBody.parentElement.scrollTop;
+
+
+            const initialRows = `
+                {% for transaction in recent_transactions %}
+                <tr>
+                    <td class="date">{{ transaction.date }}</td>
+                    <td class="type">
+                        {% if transaction.transaction_type == 'income' %}
+                            <span class="text-success">Доход</span>
+                        {% else %}
+                            <span class="text-danger">Расход</span>
+                        {% endif %}
+                    </td>
+                    <td class="amount">{{ transaction.amount }} ₽</td>
+                    <td class="category">{{ transaction.category.name|default:"—" }}</td>
+                    <td class="description" title="{{ transaction.description }}">
+                        {{ transaction.description|default:"—" }}
+                    </td>
+                    <td class="actions">
+                        <div class="btn-group" role="group">
+                            <a href="{% url 'edit_transaction' transaction.id %}"
+                               class="btn btn-sm btn-outline-primary">Редактировать</a>
+                            <a href="{% url 'delete_transaction' transaction.id %}"
+                               class="btn btn-sm btn-outline-danger"
+                               onclick="return confirm('Вы уверены, что хотите удалить эту операцию?')">Удалить</a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            `;
+            tableBody.innerHTML = initialRows;
+            showAllBtn.textContent = `Показать все (${showAllBtn.getAttribute('data-total-count')})`;
+            showAllBtn.setAttribute('data-is-expanded', 'false');
+
+
+            tableBody.parentElement.scrollTop = scrollTop;
+        }
+    });
+});
+</script>
 
 {% endif %}
 {% endblock %}

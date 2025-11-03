@@ -40,6 +40,12 @@ def dashboard(request):
     if category_id:
         transactions = transactions.filter(category_id=category_id)
 
+    all_transactions = Transaction.objects.filter(
+        user=request.user
+    ).order_by('-date')
+
+    recent_transactions = all_transactions[:5]
+
     total_income = transactions.filter(transaction_type='income').aggregate(
         total=Sum('amount')
     )['total'] or 0
@@ -58,9 +64,15 @@ def dashboard(request):
             monthly_data[month_key]['expense'] += trans.amount
 
     labels_expense = sorted(monthly_data.keys())
-    data_expense = [float(monthly_data[month]['expense']) for month in labels_expense]
+    data_expense = [
+        float(monthly_data[month]['expense'])
+        for month in labels_expense
+    ]
     labels_income = labels_expense
-    data_income = [float(monthly_data[month]['income']) for month in labels_income]
+    data_income = [
+        float(monthly_data[month]['income'])
+        for month in labels_income
+    ]
 
     labels_expense_formatted = [
         formats.date_format(
@@ -86,6 +98,9 @@ def dashboard(request):
 
     return render(request, 'dashboard.html', {
         'transactions': transactions,
+        'recent_transactions': recent_transactions,
+        'all_transactions': all_transactions,
+        'total_transactions_count': all_transactions.count(),
         'total_income': total_income,
         'total_expense': total_expense,
         'start_date': start_date_display,
@@ -230,3 +245,19 @@ def logout_view(request):
     logout(request)
     messages.info(request, 'Вы вышли из системы.')
     return redirect('login')
+
+
+def custom_400(request, exception):
+    return render(request, 'errors/400.html', status=400)
+
+
+def custom_403(request, exception):
+    return render(request, 'errors/403.html', status=403)
+
+
+def custom_404(request, exception):
+    return render(request, 'errors/404.html', status=404)
+
+
+def custom_500(request):
+    return render(request, 'errors/500.html', status=500)
