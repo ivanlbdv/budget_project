@@ -53,7 +53,12 @@
     <footer class="footer fixed-bottom bg-light">
     <div class="container text-center">
         <span class="text-muted">
-        &copy; {{ year }} Лебедев Иван. Все права защищены.
+            {% now "Y" as current_year %}
+            {% if current_year == '2025' %}
+                &copy; {{ current_year }} Лебедев Иван
+            {% else %}
+                &copy; 2025 – {{ current_year }} Лебедев Иван
+            {% endif %}
         </span>
     </div>
     </footer>
