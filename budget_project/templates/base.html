@@ -22,11 +22,15 @@
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
         <div class="container-fluid">
             <a class="navbar-brand" href="{% url 'dashboard' %}">&#x1F4B0; Бюджет-трекер</a>
-            <div class="navbar-nav">
+            
+            <!-- Контейнер для кнопок с Flexbox стилями -->
+            <div class="navbar-buttons d-flex flex-wrap justify-content-end align-items-center">
                 {% if user.is_authenticated %}
-                    <a class="nav-link text-white" href="{% url 'add_transaction' %}">Добавить операцию</a>
-                    <a class="nav-link text-white" href="{% url 'add_category' %}">Категории</a>
-                    <span class="nav-link text-white">({{ user.username }})</span>
+                    <a class="nav-link text-white me-2" href="{% url 'add_transaction' %}">Добавить операцию</a>
+                    <a class="nav-link text-white me-2" href="{% url 'add_category' %}">Категории</a>
+                    
+                    <!-- Отступы между элементами -->
+                    <span class="nav-link text-white me-2">({{ user.username }})</span>
                     <a class="nav-link text-white" href="{% url 'logout' %}">Выход</a>
                 {% else %}
                     <a class="nav-link text-white" href="{% url 'login' %}">Вход</a>
@@ -34,6 +38,30 @@
             </div>
         </div>
     </nav>
+
+    <style>
+        /* Стили для контейнера */
+        .navbar-buttons {
+            gap: 10px; /* Отступы между элементами */
+        }
+
+        /* Медиа-запрос для компактного режима */
+        @media (max-width: 992px) {
+            .navbar-buttons {
+                flex-wrap: wrap;
+                justify-content: space-between;
+            }
+            
+            .navbar-buttons > * {
+                flex: 1 1 45%;
+            }
+        }
+
+        /* Дополнительные стили для отступов */
+        .me-2 {
+            margin-right: 10px !important;
+        }
+    </style>
 
     <div class="container main-container">
         {% if messages %}
